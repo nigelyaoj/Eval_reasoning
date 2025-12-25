@@ -193,6 +193,13 @@ def main(llm, tokenizer, data_name, args):
         example["question"] = parse_question(example, data_name)
         if example["question"] == "":
             continue
+        
+        if args.prompt_type == "dapo_trained":
+            
+            prefix = "Solve the following math problem step by step. The last line of your response should be of the form Answer: $Answer (without quotes) where $Answer is the answer to the problem.\n\n"
+            suffix = '\n\nRemember to put your answer on its own line after "Answer:".'
+            example["question"] = prefix + example["question"].strip("\n") + suffix
+
         gt_cot, gt_ans = parse_ground_truth(example, data_name)
         example["gt_ans"] = gt_ans
 
