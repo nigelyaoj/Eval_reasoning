@@ -45,8 +45,8 @@ def aggregate_by_model(summaries: list[dict]) -> tuple[list[str], dict[str, dict
         parts = Path(s["file"]).parts  # e.g., arm-team/ARM-7B/gsm8k/...
         if len(parts) < 3:
             continue
-        model = parts[1]
-        dataset = parts[2]
+        model = parts[-3]
+        dataset = parts[-2]
         datasets.add(dataset)
         table.setdefault(model, {})[dataset] = (s["avg_score"], s["avg_token_len"])
     return sorted(datasets), table
@@ -57,12 +57,22 @@ def main() -> None:
         # "gsm8k", "olympiadbench",
          "math500", "amc23", "aime24", "aime25"
     ]
+
+    exclude_model_list = [
+        "ARM-14B",
+        "ARM-7B",
+        "DeepSeek-R1-Distill-Qwen-14B",
+        "alpha_0.05_DeepSeek-R1-Distill-Qwen-1.5B",
+    ]
     
     summaries = []
     for jsonl in ROOT.rglob("*.jsonl"):
         # Only process files from specified datasets
         parts = jsonl.relative_to(ROOT).parts
-        if len(parts) >= 3 and parts[2] in dataset_list:
+        model_name = parts[-3] if len(parts) >= 3 else None
+        if model_name in exclude_model_list:
+            continue
+        if len(parts) >= 3 and parts[-2] in dataset_list:
             summary = summarize_file(jsonl)
             if summary:
                 summaries.append(summary)
